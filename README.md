@@ -1,5 +1,3 @@
-use ARM-board-Nucleo-F429ZI-board (STM32F429ZI)
-
 # UART & DC Motor Control System with ASIC Implementation
 
 ## 1. Project Overview
@@ -55,3 +53,6 @@ Sign-off 검증: Parasitic RC 값이 반영된 SDF를 생성하여 Post-layout G
 
 4. 향후 아키텍처 고도화 (Scalability)
 단독 제어(Standalone) 구조를 확장하여, 개발한 모듈을 AMBA AXI4-Lite Slave IP로 패키징. Zynq PS(ARM 코어)의 Memory-mapped 제어를 받는 완벽한 SoC 통합 시스템으로 업그레이드 예정.
+
+Board: ARM-Nucleo-F429ZI-board (STM32F429ZI)
+
