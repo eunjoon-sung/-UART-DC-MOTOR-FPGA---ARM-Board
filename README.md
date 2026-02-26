@@ -3,28 +3,29 @@ use ARM-board-Nucleo-F429ZI-board (STM32F429ZI)
 # UART & DC Motor Control System with ASIC Implementation
 
 ## 1. Project Overview
-[cite_start]This repository contains a Verilog-based UART communication system integrated with a PWM DC Motor controller[cite: 3858]. [cite_start]Designed from the ground up, the system handles asynchronous serial communication (Baud rate: 9600, 16x oversampling) to receive commands via a Bluetooth module, mapping them to specific motor actions (Forward, Reverse, PWM speed control)[cite: 3473, 3855, 3857]. 
-[cite_start]Furthermore, the project encompasses a complete ASIC design flow using Cadence tools (Genus & Innovus), extending from RTL synthesis to Place & Route (P&R) and Post-Layout Gate-Level Simulation (GLS).
+This repository contains a Verilog-based UART communication system integrated with a PWM DC Motor controller. 
+Designed from the ground up, the system handles asynchronous serial communication (Baud rate: 9600, 16x oversampling) to receive commands via a Bluetooth module, mapping them to specific motor actions (Forward, Reverse, PWM speed control). 
+Furthermore, the project encompasses a complete ASIC design flow using Cadence tools (Genus & Innovus), extending from RTL synthesis to Place & Route (P&R) and Post-Layout Gate-Level Simulation (GLS).
 
 ## 2. Key Features
-* [cite_start]**Custom UART Transceiver:** Independent Rx/Tx modules utilizing an 11-bit frame (Start, 8-bit Data, Parity, Stop) with a robust finite state machine (FSM)[cite: 3473, 3535].
-* [cite_start]**PWM Motor Controller:** Converts decoded UART bytes into directional logic and variable PWM duty cycles for L9110S motor drivers[cite: 3855, 3857].
-* [cite_start]**ASIC Physical Design:** Validated timing closure and physical implementation using standard cell libraries[cite: 3955, 4031].
+* **Custom UART Transceiver:** Independent Rx/Tx modules utilizing an 11-bit frame (Start, 8-bit Data, Parity, Stop) with a robust finite state machine (FSM).
+* **PWM Motor Controller:** Converts decoded UART bytes into directional logic and variable PWM duty cycles for L9110S motor drivers.
+* **ASIC Physical Design:** Validated timing closure and physical implementation using standard cell libraries.
 
 ## 3. Critical Troubleshooting Log (Deep Dive)
 
 ### Issue 1: Simulation vs. Synthesis Mismatch in FSM State Transitions
-* **Symptom:** In functional simulation, the FSM transitioned correctly. [cite_start]However, during FPGA hardware testing (verified via ILA), `state` advanced prematurely when `bit_index` reached 1 instead of 2.
-* [cite_start]**Root Cause:** The `always @(*)` combinational logic for `next_state` lacked exhaustive `else` conditions. [cite_start]While the simulator processed this with zero-time delay, the synthesis tool generated unintended latches to "remember" the previous state. [cite_start]This physical latch introduced propagation delays and glitches, causing a race condition during the setup time of the state flip-flop.
-* [cite_start]**Resolution:** Implemented completely defined combinational logic by adding explicit `else` statements for all conditions, ensuring pure combinational synthesis without latches.
+* **Symptom:** In functional simulation, the FSM transitioned correctly. However, during FPGA hardware testing (verified via ILA), `state` advanced prematurely when `bit_index` reached 1 instead of 2.
+* **Root Cause:** The `always @(*)` combinational logic for `next_state` lacked exhaustive `else` conditions. While the simulator processed this with zero-time delay, the synthesis tool generated unintended latches to "remember" the previous state. This physical latch introduced propagation delays and glitches, causing a race condition during the setup time of the state flip-flop.
+* **Resolution:** Implemented completely defined combinational logic by adding explicit `else` statements for all conditions, ensuring pure combinational synthesis without latches.
 
 ### Issue 2: Duty Cycle Overwrite in Sequential Logic
-* [cite_start]**Symptom:** The PWM duty cycle remained at 0 despite receiving speed increment/decrement commands (0x83, 0x84).
-* **Root Cause:** Multiple non-blocking assignments (`<=`) targeted the `duty_cycle` register within the same clock cycle. The default `else { duty_cycle <= duty_cycle; }` at the end of the block continuously overwrote the newly updated values from the command decoder[cite: 3887, 3888].
-* [cite_start]**Resolution:** Restructured the sequential block into a strict priority hierarchy, guaranteeing that `duty_cycle` is assigned exactly once per clock cycle.
+* **Symptom:** The PWM duty cycle remained at 0 despite receiving speed increment/decrement commands (0x83, 0x84).
+* **Root Cause:** Multiple non-blocking assignments (`<=`) targeted the `duty_cycle` register within the same clock cycle. The default `else { duty_cycle <= duty_cycle; }` at the end of the block continuously overwrote the newly updated values from the command decoder.
+* **Resolution:** Restructured the sequential block into a strict priority hierarchy, guaranteeing that `duty_cycle` is assigned exactly once per clock cycle.
 
 ## 4. Future Architecture Upgrade
-* **AMBA AXI4-Lite Integration:** Transitioning from a standalone MCU-FPGA interface to an SoC architecture. [cite_start]The UART and Motor controller modules will be packaged as AXI4-Lite slave peripherals, allowing direct memory-mapped control from the Zynq Processing System (ARM Cortex-A9).
+* **AMBA AXI4-Lite Integration:** Transitioning from a standalone MCU-FPGA interface to an SoC architecture. The UART and Motor controller modules will be packaged as AXI4-Lite slave peripherals, allowing direct memory-mapped control from the Zynq Processing System (ARM Cortex-A9).
 
 -------
 
