@@ -37,6 +37,7 @@ Furthermore, the project encompasses a complete ASIC design flow using Cadence t
 
 ## 5. Result
 * **youtube link:** 🔗https://youtube.com/shorts/WTCJQ0E2--E?feature=share
+* ![IMG_5762](https://github.com/user-attachments/assets/fe5be1e2-f73e-4dae-be3f-663bf9dfa264)
 
 -------
 
